@@ -15,7 +15,6 @@ public class QueryParams {
     private Map<String, Object> orders = new HashMap<String, Object>();
     private Map<String, List<String>> ins = new HashMap<String, List<String>>();
     protected String sql = " where 1=1 ";
-    protected String orderHQL = "";
     private Map<String, Object> value = new HashMap<String, Object>();
     private Map<String, List<Object>> mutValues = new HashMap<String, List<Object>>();
 
@@ -114,8 +113,8 @@ public class QueryParams {
             StringBuilder g = new StringBuilder();
 
             for (String in : ins.keySet()) {
-                String _hql = " and  %s%s in( :%s )";
-                g.append(String.format(_hql, prefix, in, in));
+                String _sql = " and  %s%s in( :%s )";
+                g.append(String.format(_sql, prefix, in, in));
             }
 
             return g.toString();
@@ -184,7 +183,7 @@ public class QueryParams {
 
     public String toWhereSQL(String prefix) {
         prefix(prefix);
-        String _hql = " and %s%s = :%s ";
+        String _sql = " and %s%s = :%s ";
         Set<String> keys = value.keySet();
         Map<String, Object> _value = new HashMap<String, Object>();
         StringBuffer sb = new StringBuffer();
@@ -194,7 +193,7 @@ public class QueryParams {
             String filterDotKey = key.replaceAll("\\.", "_");
             //    String filterDotKey = key;
             _value.put(filterDotKey, value.get(key));
-            sb.append(String.format(_hql, prefix, key, filterDotKey));
+            sb.append(String.format(_sql, prefix, key, filterDotKey));
         }
         this.value = _value;
         return sb.toString();
