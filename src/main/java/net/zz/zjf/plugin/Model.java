@@ -14,13 +14,29 @@ import java.util.Map;
  */
 public class Model<M extends com.jfinal.plugin.activerecord.Model> extends com.jfinal.plugin.activerecord.Model<M> {
 
-    public Page<M> queryPageUseSQL(QueryParams params, boolean isPage) throws Exception {
+    public Page<M> queryPageUseSQL(QueryParams params, boolean isPage){
         String hsql = " from " + getTableName() +  " t " + params.toWhereSQL("t") + params.toInSQL("t") + params.toLikeSQL("t") + params.toGroupSQL("t") + params.toOrderSQL("t");
         System.out.println("hsql:" + hsql);
         params.getSqlValue().putAll(params.getSqlLikes());
         params.getSqlValue().putAll(params.getIns());
         String sqlExceptSelect = params.toFormatSQL(hsql);
-        return paginate(params.getPageIndex(), params.getPageSize(), "SELECT * ", sqlExceptSelect, params.getParas().toArray());
+      if (isPage){
+            return paginate(params.getPageIndex(), params.getPageSize(), "SELECT * ", sqlExceptSelect, params.getParas().toArray());
+        }
+        long totalRow = 0L;
+        List result = Db.query( "select count(*) " + DbKit.replaceFormatSqlOrderBy(sqlExceptSelect), params.getParas().toArray());
+        int size = result.size();
+        if(size == 1) {
+            totalRow = ((Number)result.get(0)).longValue();
+        } else {
+            if(size <= 1) {
+                return new Page(new ArrayList(0), 1, 10, 0, 0);
+            }
+            totalRow = (long)result.size();
+        }
+
+        List list = this.find("SELECT * ", sqlExceptSelect.toString(), params.getParas().toArray());
+        return new Page(list, 1, (int) totalRow, 1, (int)totalRow);
     }
 
 
