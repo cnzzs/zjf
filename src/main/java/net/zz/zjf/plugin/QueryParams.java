@@ -17,7 +17,6 @@ public class QueryParams {
     private Map<String, Object> orders = new HashMap<String, Object>();
     private Map<String, List<String>> ins = new HashMap<String, List<String>>();
     protected String sql = " where 1=1 ";
-    protected String ordersql = "";
     private Map<String, Object> value = new HashMap<String, Object>();
     private List<Object> paras = new ArrayList<Object>();
 
@@ -218,8 +217,8 @@ public class QueryParams {
         return sb.toString();
     }
 
-    public String toFormatSQL(String sql) {
-        Matcher matcher = Pattern.compile(":(\\w+)").matcher(sql);
+    public String toFormatSQL(String hsql) {
+        Matcher matcher = Pattern.compile(":(\\w+)").matcher(hsql);
 
        while ( matcher.find()){
 
@@ -244,10 +243,18 @@ public class QueryParams {
                paras.add(ov);
                rexp = "?";
            }
-           sql = sql.replace(String.format(":%s", group), rexp);
+           hsql = hsql.replace(String.format(":%s", group), rexp);
        }
-        return sql;
+        return hsql;
     }
+    public String toSqlExceptSelect(String tableName, String prefix ) {
+        String hsql = " from " + tableName +  "  " + prefix + toWhereSQL(prefix) + toInSQL(prefix) + toLikeSQL(prefix) + toGroupSQL(prefix) + toOrderSQL(prefix);
+        getSqlValue().putAll(getSqlLikes());
+        getSqlValue().putAll(getIns());
+        return toFormatSQL(hsql);
+
+    }
+
 
     public static void main(String[] args) {
 
@@ -260,13 +267,12 @@ public class QueryParams {
         params.addIn("name", names);
         params.like("nick", "张");
         params.addOrder("time");
-        String hql = " from  user"  +  " t " + params.toWhereSQL("t") + params.toInSQL("t") + params.toLikeSQL("t") + params.toGroupSQL("t") + params.toOrderSQL("t");
-        System.out.println("hql:" + hql);
+        String hsql = " from  user"  +  " t " + params.toWhereSQL("t") + params.toInSQL("t") + params.toLikeSQL("t") + params.toGroupSQL("t") + params.toOrderSQL("t");
+        System.out.println("hsql:" + hsql);
         params.getSqlValue().putAll(params.getSqlLikes());
         params.getSqlValue().putAll(params.getIns());
-        String sql = params.toFormatSQL(hql);
-        System.out.println("sql:" + sql);
-
+        String sql = params.toFormatSQL(hsql);
+//        System.out.println("sql:" + sql);
         params.atts(params.getParas().toArray());
 
     }

@@ -34,10 +34,9 @@ public abstract class JFinalConfig  extends com.jfinal.config.JFinalConfig{
 
     /**
      *  设置数据源
-     * @param showSql 是否显示SQL， true为现实，默认为false
      * @return IDataSourceProvider
      */
-    public abstract IDataSourceProvider setDataSource (boolean showSql);
+    public abstract IDataSourceProvider setDataSource ();
 
 
 
@@ -78,15 +77,15 @@ public abstract class JFinalConfig  extends com.jfinal.config.JFinalConfig{
     public void configPlugin(Plugins me) {
 
          componentSscan(basePackage);
-        boolean showSql = false;
-        IDataSourceProvider iDataSourceProvider = setDataSource(showSql);
+
+        IDataSourceProvider iDataSourceProvider = setDataSource();
         try {
             me.add((IPlugin) iDataSourceProvider);
         }catch (Exception e){
             throw new RuntimeException("is not IPlugin type");
         }
         ActiveRecordPlugin arp = new ActiveRecordPlugin(iDataSourceProvider);
-        arp.setShowSql(showSql);//设置是sql显示开关
+
         addActiveRecord(arp); // 加入附加的活动记录
         Scan driven = new Scan();
         for (String pake : basePackage){
@@ -94,7 +93,8 @@ public abstract class JFinalConfig  extends com.jfinal.config.JFinalConfig{
 
             for (Class<?> clazz : clazzs) {
                 System.out.println(clazz.getName());
-                if (clazz.getSuperclass() == com.jfinal.plugin.activerecord.Model.class) {
+                Class superClass = clazz.getSuperclass();
+                if (superClass == com.jfinal.plugin.activerecord.Model.class || superClass.getSuperclass() ==  com.jfinal.plugin.activerecord.Model.class) {
                    M model = clazz.getAnnotation(M.class);
                     if (null != model) {
                         arp.addMapping(model.value(), model.id(), (Class<? extends Model<?>>) clazz);
@@ -109,7 +109,9 @@ public abstract class JFinalConfig  extends com.jfinal.config.JFinalConfig{
      * 这里进行附加的活动记录的添加，
      * @param arp 活动记录插件
      */
-    public void addActiveRecord(ActiveRecordPlugin arp){ }
+    public void addActiveRecord(ActiveRecordPlugin arp){
+        //arp.setShowSql(true);//设置是sql显示开关
+    }
 
     /**
      * Interceptors
@@ -131,7 +133,7 @@ public abstract class JFinalConfig  extends com.jfinal.config.JFinalConfig{
         String path = JFinalConfig.class.getClassLoader().getResource("").getPath();
 
         Scan driven= new Scan();
-        Set<Class<?>> cls=driven.getClasses("net.mzzo.model");
+        Set<Class<?>> cls=driven.getClasses("net.zz.model");
 
         for (Class<?> clazz : cls) {
         	System.out.println(clazz.getSuperclass() );

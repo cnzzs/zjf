@@ -14,17 +14,29 @@ import java.util.Map;
  */
 public class Model<M extends com.jfinal.plugin.activerecord.Model> extends com.jfinal.plugin.activerecord.Model<M> {
 
-    public Page<M> queryPageUseSQL(QueryParams params, boolean isPage){
+
+   /* private String getSqlExceptSelect(QueryParams params)
+    {
         String hsql = " from " + getTableName() +  " t " + params.toWhereSQL("t") + params.toInSQL("t") + params.toLikeSQL("t") + params.toGroupSQL("t") + params.toOrderSQL("t");
-        System.out.println("hsql:" + hsql);
         params.getSqlValue().putAll(params.getSqlLikes());
         params.getSqlValue().putAll(params.getIns());
-        String sqlExceptSelect = params.toFormatSQL(hsql);
+        return params.toFormatSQL(hsql);
+    }*/
+
+    /**
+     *
+     * @param params
+     * @param isPage
+     * @return
+     */
+    public Page<M> queryPageUseSQL(QueryParams params, boolean isPage){
+
+        String sqlExceptSelect = params.toSqlExceptSelect(getTableName() , "t");
       if (isPage){
             return paginate(params.getPageIndex(), params.getPageSize(), "SELECT * ", sqlExceptSelect, params.getParas().toArray());
         }
         long totalRow = 0L;
-        List result = Db.query( "select count(*) " + DbKit.replaceFormatSqlOrderBy(sqlExceptSelect), params.getParas().toArray());
+        List result = Db.query( "SELECT COUNT(*) " + DbKit.replaceFormatSqlOrderBy(sqlExceptSelect), params.getParas().toArray());
         int size = result.size();
         if(size == 1) {
             totalRow = ((Number)result.get(0)).longValue();
@@ -35,8 +47,47 @@ public class Model<M extends com.jfinal.plugin.activerecord.Model> extends com.j
             totalRow = (long)result.size();
         }
 
-        List list = this.find("SELECT * ", sqlExceptSelect.toString(), params.getParas().toArray());
+        List list = find(String.format("SELECT * ", sqlExceptSelect.toString()), params.getParas().toArray());
         return new Page(list, 1, (int) totalRow, 1, (int)totalRow);
+    }
+
+    /**
+     *
+     * @param params 查询参数
+     * @return List
+     */
+    public List<M> findByProperty(QueryParams params) {
+        String sqlExceptSelect = params.toSqlExceptSelect(getTableName() , "t");
+        return find(String.format("SELECT * ", sqlExceptSelect.toString()), params.getParas().toArray());
+    }
+    /**
+     * 通过orm实体属性名称查询全部
+     *
+     * @param propertyName orm实体属性名称
+     * @param value        值
+     * @return List
+     */
+    public List<M> findByProperty(String propertyName, Object value) {
+
+        return findByProperty(propertyName, value, Restriction.EQ);
+    }
+    /**
+     * 通过orm实体属性名称查询全部
+     *
+     * @param propertyName orm实体属性名称
+     * @param value        值
+     * @return List
+     */
+    public List<M> findByProperty(String propertyName, Object value, Restriction restriction) {
+        String sql = "SELECT * FROM %s WHERE %s %s";
+        return find(String.format(sql, getTableName(), propertyName, restriction.toMatchString("?")), value);
+    }
+
+
+    public M findFirst(QueryParams params) {
+        String hsql = " FROM "  + getTableName() + " t "   + params.toWhereSQL("t");
+        M value = this.findFirst(String.format("SELECT * %s", params.toFormatSQL(hsql)) , params.getParas().toArray());
+        return value;
     }
 
 
