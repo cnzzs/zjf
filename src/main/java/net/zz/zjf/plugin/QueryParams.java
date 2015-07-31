@@ -1,6 +1,5 @@
 package net.zz.zjf.plugin;
 
-import com.jfinal.plugin.activerecord.Page;
 
 import java.util.*;
 import java.util.regex.Matcher;
