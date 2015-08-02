@@ -3,6 +3,7 @@ package net.zz.zjf.plugin;
 import com.jfinal.plugin.activerecord.*;
 
 import java.sql.Connection;
+import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -60,6 +61,7 @@ public class Model<M extends com.jfinal.plugin.activerecord.Model> extends com.j
         String sqlExceptSelect = params.toSqlExceptSelect(getTableName() , "t");
         return find(String.format("SELECT * ", sqlExceptSelect.toString()), params.getParas().toArray());
     }
+
     /**
      * 通过orm实体属性名称查询全部
      *
@@ -76,11 +78,33 @@ public class Model<M extends com.jfinal.plugin.activerecord.Model> extends com.j
      *
      * @param propertyName orm实体属性名称
      * @param value        值
+     * @return M
+     */
+    public M findFirst(String propertyName, Object value) {
+        List<M> result = findByProperty(propertyName, value, Restriction.EQ);
+        return result.size() > 0?result.get(0):null;
+    }
+    /**
+     * 通过orm实体属性名称查询全部
+     *
+     * @param propertyName orm实体属性名称
+     * @param value        值
      * @return List
      */
     public List<M> findByProperty(String propertyName, Object value, Restriction restriction) {
         String sql = "SELECT * FROM %s WHERE %s %s";
         return find(String.format(sql, getTableName(), propertyName, restriction.toMatchString("?")), value);
+    }
+    /**
+     * 通过orm实体属性名称查询全部
+     *
+     * @param propertyName orm实体属性名称
+     * @param value        值
+     * @return M
+     */
+    public M findFirst(String propertyName, Object value, Restriction restriction) {
+        List<M> result = findByProperty(propertyName, value, restriction);
+        return result.size() > 0?result.get(0):null;
     }
 
 
@@ -89,6 +113,14 @@ public class Model<M extends com.jfinal.plugin.activerecord.Model> extends com.j
         M value = this.findFirst(String.format("SELECT * %s", params.toFormatSQL(hsql)) , params.getParas().toArray());
         return value;
     }
+
+
+    public boolean saveAll(List<M> ms) {
+
+        return false;
+    }
+
+
 
 
     private Table getTable() {

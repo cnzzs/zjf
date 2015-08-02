@@ -184,7 +184,6 @@ public class QueryParams {
             StringBuffer sb = new StringBuffer();
             sb.append("Order BY ");
             for (String order : orders.keySet()) {
-                System.out.println( orders.get(order));
                 sb.append(String.format("  %s%s %s, ", prefix, order, orders.get(order)));
             }
             sb.deleteCharAt(sb.length() - 2);
@@ -271,7 +270,7 @@ public class QueryParams {
         params.getSqlValue().putAll(params.getSqlLikes());
         params.getSqlValue().putAll(params.getIns());
         String sql = params.toFormatSQL(hsql);
-//        System.out.println("sql:" + sql);
+        System.out.println("sql:" + sql);
         params.atts(params.getParas().toArray());
 
     }
