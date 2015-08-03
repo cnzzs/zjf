@@ -14,9 +14,9 @@ public class QueryParams {
     private List<String> groups = new ArrayList<String>();
     private Map<String, Object> likes = new HashMap<String, Object>();
     private Map<String, Object> orders = new HashMap<String, Object>();
-    private Map<String, List<String>> ins = new HashMap<String, List<String>>();
+    private Map<String, Collection<Object>> ins = new HashMap<String, Collection<Object>>();
     protected String sql = " where 1=1 ";
-    private Map<String, Object> value = new HashMap<String, Object>();
+    private Map<String, Object> attrs = new HashMap<String, Object>();
     private List<Object> paras = new ArrayList<Object>();
 
 //    private Map<String, List<Object>> mutValues = new HashMap<String, List<Object>>();
@@ -43,7 +43,7 @@ public class QueryParams {
         return this;
     }
 
-    public QueryParams addIn(String propertyName, List<String> values) {
+    public QueryParams addIn(String propertyName, Collection<Object> values) {
         if (null != values && values.size() > 0) {
             ins.put(propertyName, values);
         }
@@ -55,7 +55,7 @@ public class QueryParams {
         return likes;
     }
 
-    public Map<String, List<String>> getIns() {
+    public Map<String, Collection<Object>> getIns() {
         return ins;
     }
 
@@ -158,9 +158,9 @@ public class QueryParams {
 
     public QueryParams add(String key, Object _value) {
         if (_value == null) {
-            value.remove(key);
+            attrs.remove(key);
         } else {
-            value.put(key, _value);
+            attrs.put(key, _value);
 
         }
         return this;
@@ -169,7 +169,7 @@ public class QueryParams {
 
 
     public Map<String, Object> getSqlValue() {
-        return value;
+        return attrs;
     }
 
     public String toOrderSQL() {
@@ -200,7 +200,7 @@ public class QueryParams {
     public String toWhereSQL(String prefix) {
         prefix = prefix(prefix);
         String _sql = " and %s%s = :%s ";
-        Set<String> keys = value.keySet();
+        Set<String> keys = attrs.keySet();
         Map<String, Object> _value = new HashMap<String, Object>();
         StringBuffer sb = new StringBuffer();
 
@@ -208,41 +208,52 @@ public class QueryParams {
         for (String key : keys) {
             String filterDotKey = key.replaceAll("\\.", "_");
             //    String filterDotKey = key;
-            _value.put(filterDotKey, value.get(key));
+            _value.put(filterDotKey, attrs.get(key));
             sb.append(String.format(_sql, prefix, key, filterDotKey));
         }
-        this.value = _value;
+        this.attrs = _value;
         return sb.toString();
     }
 
     public String toFormatSQL(String hsql) {
+        return  toFormatSQL(hsql, attrs, paras);
+    }
+
+    /**
+     * 
+     * @param hsql
+     * @param attrs
+     * @param values
+     * @return
+     */
+    public static  String toFormatSQL(String hsql, Map<String, Object> attrs, List<Object> values) {
         Matcher matcher = Pattern.compile(":(\\w+)").matcher(hsql);
 
-       while ( matcher.find()){
+        while ( matcher.find()){
 
             String rexp = null;
-           String group = matcher.group(1);
+            String group = matcher.group(1);
 
-           Object ov = value.get(group);
-           if (ov instanceof List)
-           {
-               StringBuilder sb = new StringBuilder();
-               List vs = (List) ov;
-               for (Object v : vs)
-               {
-                   sb.append("?,");
-                   paras.add(v);
-               }
-               sb.deleteCharAt(sb.length() - 1);
-               rexp = sb.toString();
+            Object ov = attrs.get(group);
+            if (ov instanceof List)
+            {
+                StringBuilder sb = new StringBuilder();
+                List vs = (List) ov;
+                for (Object v : vs)
+                {
+                    sb.append("?,");
+                    values.add(v);
+                }
+                sb.deleteCharAt(sb.length() - 1);
+                rexp = sb.toString();
 
-           }else
-           {
-               paras.add(ov);
-               rexp = "?";
-           }
-           hsql = hsql.replace(String.format(":%s", group), rexp);
-       }
+            }else
+            {
+                values.add(ov);
+                rexp = "?";
+            }
+            hsql = hsql.replace(String.format(":%s", group), rexp);
+        }
         return hsql;
     }
     public String toSqlExceptSelect(String tableName, String prefix ) {
@@ -259,7 +270,7 @@ public class QueryParams {
         QueryParams params = new QueryParams();
         params.add("id", 1);
         params.addGroup("cc");
-        List<String> names = new ArrayList<String>();
+        List<Object> names = new ArrayList<Object>();
         names.add("张三");
         names.add("李四");
         params.addIn("name", names);

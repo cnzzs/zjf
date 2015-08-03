@@ -1,13 +1,8 @@
 package net.zz.zjf.plugin;
 
 /**
+ *  Represents an strategy for matching strings using "like".
  * Created by ZaoSheng on 2015/7/15.
- */
-/**
- * Represents an strategy for matching strings using "like".
- *
- * @author Gavin King
- * @see (MatchMode)
  */
 public enum MatchMode {
 
