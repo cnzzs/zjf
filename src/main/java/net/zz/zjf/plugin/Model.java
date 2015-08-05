@@ -43,6 +43,26 @@ public class Model<M extends net.zz.zjf.plugin.Model, PK extends Serializable> e
     /**
     *
     *  例子：
+    *  sql="select * from zz z where z.name = ?"
+    *
+    * findFirstBySQLQuery(queryOrNamedQuery, "张三")
+    * @param sql
+    * @param attrs
+    * @return List
+    */
+    public List<Map<String, Object>> findMapBySQLQuery(String sql, Object...attrs) {
+        List<Record> records = Db.find(sql, attrs);
+        List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
+        for (Record record : records) {
+            list.add(record.getColumns());
+
+        }
+        return list;
+    }
+
+    /**
+    *
+    *  例子：
     *  queryOrNamedQuery="select * from zz z where z.name = :name"
     * attrs.put("name", "张三")
     * findFirstBySQLQuery(queryOrNamedQuery, attrs)
@@ -50,7 +70,7 @@ public class Model<M extends net.zz.zjf.plugin.Model, PK extends Serializable> e
     * @param attrs
     * @return List
     */
-    public List<Map<String, Object>> findBySQLQuery(String queryOrNamedQuery, Map<String, Object> attrs) {
+    public List<Map<String, Object>> findMapBySQLQuery(String queryOrNamedQuery, Map<String, Object> attrs) {
         List<Object> params = new ArrayList<Object>();
         String sql = QueryParams.toFormatSQL(queryOrNamedQuery, attrs, params);
         List<Record> records = Db.find(sql, params);
@@ -60,6 +80,23 @@ public class Model<M extends net.zz.zjf.plugin.Model, PK extends Serializable> e
 
         }
         return list;
+    }
+
+    /**
+    *
+    *  例子：
+    *  queryOrNamedQuery="select * from zz z where z.name = :name"
+    * attrs.put("name", "张三")
+    * findFirstBySQLQuery(queryOrNamedQuery, attrs)
+    * @param queryOrNamedQuery
+    * @param attrs
+    * @return List
+    */
+    public List<M> findBySQLQuery(String queryOrNamedQuery, Map<String, Object> attrs) {
+        List<Object> params = new ArrayList<Object>();
+        String sql = QueryParams.toFormatSQL(queryOrNamedQuery, attrs, params);
+
+        return find(sql,params);
     }
 
     /**
@@ -73,14 +110,46 @@ public class Model<M extends net.zz.zjf.plugin.Model, PK extends Serializable> e
      * @param attrs
      * @return
      */
-    public Map<String, Object> findFirstBySQLQuery(String queryOrNamedQuery, Map<String, Object> attrs) {
+    public Map<String, Object> findMapFirstBySQLQuery(String queryOrNamedQuery, Map<String, Object> attrs) {
         List<Object> params = new ArrayList<Object>();
         String sql = QueryParams.toFormatSQL(queryOrNamedQuery, attrs, params);
         List<Record> records = Db.find(sql, params);
-        if (records.size() >= 1) {
-            return records.get(0).getColumns();
-        }
-        return null;
+
+        return records.size() >= 1 ?  records.get(0).getColumns() : null;
+    }
+
+    /**
+     * 获得一条记录
+     * 例子：
+     * sql="select * from zz z where z.name = ?"
+     * attrs.put("name", "张三")
+     * findFirstBySQLQuery(queryOrNamedQuery, attrs)
+     *
+     * @param sql
+     * @param attrs
+     * @return
+     */
+    public Map<String, Object> findMapFirstBySQLQuery(String sql, Object...attrs) {
+        List<Record> records = Db.find(sql, attrs);
+        return records.size() >= 1 ?  records.get(0).getColumns() : null;
+    }
+    /**
+     * 获得一条记录
+     * 例子：
+     * queryOrNamedQuery="select * from zz z where z.name = :name"
+     * attrs.put("name", "张三")
+     * findFirstBySQLQuery(queryOrNamedQuery, attrs)
+     *
+     * @param queryOrNamedQuery
+     * @param attrs
+     * @return
+     */
+    public M findFirstBySQLQuery(String queryOrNamedQuery, Map<String, Object> attrs) {
+        List<Object> params = new ArrayList<Object>();
+        String sql = QueryParams.toFormatSQL(queryOrNamedQuery, attrs, params);
+        List<M> ms = find(sql, params);
+
+        return ms.size() >= 1 ? ms.get(0) : null;
     }
 
     /**
@@ -135,6 +204,28 @@ public class Model<M extends net.zz.zjf.plugin.Model, PK extends Serializable> e
      * 通过orm实体属性名称查询全部
      *
      * @param propertyName orm实体属性名称
+     * @param restriction
+     * @return M
+     */
+    public M findFirstByIsNull(String propertyName, Restriction restriction) {
+        List<M> result = findByProperty(propertyName, null, restriction);
+        return result.size() > 0 ? result.get(0) : null;
+    }
+    /**
+     * 通过orm实体属性名称查询全部
+     *
+     * @param propertyName orm实体属性名称
+     * @param restriction
+     * @return  List<M>
+     */
+    public List<M>  findByIsNull(String propertyName, Restriction restriction) {
+        return findByProperty(propertyName, null, restriction);
+    }
+
+    /**
+     * 通过orm实体属性名称查询全部
+     *
+     * @param propertyName orm实体属性名称
      * @param value        值
      * @return M
      */
@@ -148,11 +239,34 @@ public class Model<M extends net.zz.zjf.plugin.Model, PK extends Serializable> e
      *
      * @param propertyName orm实体属性名称
      * @param value        值
+     * @param restriction      规则
      * @return List
      */
     public List<M> findByProperty(String propertyName, Object value, Restriction restriction) {
         String sql = "SELECT * FROM %s WHERE %s %s";
-        return find(String.format(sql, getTableName(), propertyName, restriction.toMatchString("?")), value);
+        Map<String, Object> attrs = new HashMap<String, Object>();
+        switch (restriction)
+        {
+            case LIKE:
+            case LLIKE:
+            case RLIKE:
+                sql = String.format(sql, getTableName(), propertyName, "like :" + propertyName);
+                attrs.put(propertyName, restriction.toMatchString(value.toString()));
+                break;
+            case NULL:
+            case NOTNULL:
+                sql = String.format(sql, getTableName(), propertyName,  restriction.toMatchString(propertyName));
+                break;
+            default:
+                sql = String.format(sql, getTableName(), propertyName,  restriction.toMatchString(propertyName));
+                attrs.put(propertyName, value);
+        }
+
+        if (attrs.isEmpty()) return  find(sql);
+
+        List<Object> values = new ArrayList<Object>();
+
+        return find( QueryParams.toFormatSQL(sql, attrs, values), values.toArray());
     }
 
     /**
@@ -192,7 +306,7 @@ public class Model<M extends net.zz.zjf.plugin.Model, PK extends Serializable> e
             }
         }
         return true;
-   /*     int size = 0;
+   /**   int size = 0;
             if ((size = ms.size()) <= 0)
             {
                throw new ActiveRecordException("(List<M> is null ?");
@@ -255,6 +369,8 @@ public class Model<M extends net.zz.zjf.plugin.Model, PK extends Serializable> e
         }
         return true;
     }
+
+
 
     /**
      * 按PK列表获取对象列表.
