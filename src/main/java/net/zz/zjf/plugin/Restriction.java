@@ -69,7 +69,7 @@ public enum Restriction {
     IN {
         @Override
         public String toMatchString(String pattern) {
-            return "> :" + pattern;
+            return String.format("in (:%s)" , pattern);
         }
     },
 
@@ -79,23 +79,23 @@ public enum Restriction {
     NIN {
         @Override
         public String toMatchString(String pattern) {
-            return "> :" + pattern;
+            return String.format("not in ( :%s )" , pattern);
         }
     },
 
-  /*  *//**
+    /* *
      * 左模糊查询（from Object o where o.property like %?）
-     *//*
+     */
     LLIKE {
         @Override
         public String toMatchString(String pattern) {
-            return '%' + pattern;
+            return "%" + pattern;
         }
     },
 
-    *//**
+   /* *
      * 右模糊查询（from Object o where o.property like ?%)
-     *//*
+     */
     RLIKE {
         @Override
         public String toMatchString(String pattern) {
@@ -103,15 +103,33 @@ public enum Restriction {
         }
     },
 
-    *//**
+   /* *
      * 模糊查询（from Object o where o.property like %?%)
-     *//*
+     */
     LIKE {
         @Override
         public String toMatchString(String pattern) {
             return '%' + pattern + '%';
         }
-    }*/;
+    },
+   /* *
+     * 模糊查询（from Object o where o.property  is null)
+     */
+    NULL {
+        @Override
+        public String toMatchString(String pattern) {
+            return  pattern + " is null";
+        }
+    },
+   /* *
+     * 模糊查询（from Object o where o.property is not null)
+     */
+   NOTNULL  {
+        @Override
+        public String toMatchString(String pattern) {
+            return  pattern + " is not null";
+        }
+    };
 
     public abstract String toMatchString(String pattern);
     }

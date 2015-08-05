@@ -12,6 +12,7 @@ public class QueryParams {
     private Integer pageIndex = 1;
     private Integer pageSize = 10;
     private List<String> groups = new ArrayList<String>();
+    private List<String> isNuls = new ArrayList<String>();
     private Map<String, Object> likes = new HashMap<String, Object>();
     private Map<String, Object> orders = new HashMap<String, Object>();
     private Map<String, Collection<Object>> ins = new HashMap<String, Collection<Object>>();
@@ -21,16 +22,32 @@ public class QueryParams {
 
 //    private Map<String, List<Object>> mutValues = new HashMap<String, List<Object>>();
 
-    public void addOrder(String key, OrderAD ad) {
+    public QueryParams addOrder(String key, OrderAD ad) {
         orders.put(key, ad.name());
+        return this;
     }
 
-    public void addOrder(String key) {
+    public QueryParams addOrder(String key) {
         orders.put(key, OrderAD.DESC.name());
+        return this;
     }
 
-    public enum OrderAD {
-        DESC, ASC
+
+
+
+
+    public List<String> getIsNuls() {
+        return isNuls;
+    }
+
+    public QueryParams addIsNul(String key, IsNul isNul1) {
+        isNuls.add(isNul1.toMatchString(key));
+        return this;
+    }
+
+    public QueryParams addIsNul(String key) {
+
+        return addIsNul(key, IsNul.NULL);
     }
 
     public Map<String, Object> getSqlLikes() {
@@ -38,8 +55,9 @@ public class QueryParams {
     }
 
     public QueryParams addGroup(String group) {
-        this.groups.add(group);
-
+        if (group != null && "".equals(group)) {
+            this.groups.add(group);
+        }
         return this;
     }
 
@@ -64,13 +82,18 @@ public class QueryParams {
     }
 
     public QueryParams like(String propertyName, String value, MatchMode matchMode) {
-        this.likes.put(propertyName, matchMode.toMatchString(value));
+        if (null == value) {
+            likes.remove(propertyName);
+        } else {
+
+            likes.put(propertyName, matchMode.toMatchString(value));
+        }
         return this;
     }
 
     public QueryParams like(String propertyName, String value) {
-        like(propertyName, value, MatchMode.ANYWHERE);
-        return this;
+
+        return like(propertyName, value, MatchMode.ANYWHERE);
     }
 
 
@@ -85,7 +108,21 @@ public class QueryParams {
         return "m.";
     }
 
-    public String toGroupSQL(String prefix) {
+    public String toIsNulSQL(String prefix) {
+        prefix = prefix(prefix);
+        if (isNuls != null && isNuls.size() >= 1) {
+
+            StringBuilder g = new StringBuilder();
+
+            for (String isNul : isNuls) {
+                g.append("and ").append(prefix).append(isNul);
+
+            }
+            return g.toString();
+        }
+        return "";
+    }
+ public String toGroupSQL(String prefix) {
         prefix = prefix(prefix);
 
         if (groups != null && groups.size() >= 1) {
@@ -216,39 +253,36 @@ public class QueryParams {
     }
 
     public String toFormatSQL(String hsql) {
-        return  toFormatSQL(hsql, attrs, paras);
+        paras.clear();
+        return toFormatSQL(hsql, attrs, paras);
     }
 
     /**
-     * 
      * @param hsql
      * @param attrs
      * @param values
      * @return
      */
-    public static  String toFormatSQL(String hsql, Map<String, Object> attrs, List<Object> values) {
+    public static String toFormatSQL(String hsql, Map<String, Object> attrs, List<Object> values) {
         Matcher matcher = Pattern.compile(":(\\w+)").matcher(hsql);
 
-        while ( matcher.find()){
+        while (matcher.find()) {
 
             String rexp = null;
             String group = matcher.group(1);
 
             Object ov = attrs.get(group);
-            if (ov instanceof List)
-            {
+            if (ov instanceof List) {
                 StringBuilder sb = new StringBuilder();
                 List vs = (List) ov;
-                for (Object v : vs)
-                {
+                for (Object v : vs) {
                     sb.append("?,");
                     values.add(v);
                 }
                 sb.deleteCharAt(sb.length() - 1);
                 rexp = sb.toString();
 
-            }else
-            {
+            } else {
                 values.add(ov);
                 rexp = "?";
             }
@@ -256,8 +290,9 @@ public class QueryParams {
         }
         return hsql;
     }
-    public String toSqlExceptSelect(String tableName, String prefix ) {
-        String hsql = " from " + tableName +  "  " + prefix + toWhereSQL(prefix) + toInSQL(prefix) + toLikeSQL(prefix) + toGroupSQL(prefix) + toOrderSQL(prefix);
+
+    public String toSqlExceptSelect(String tableName, String prefix) {
+        String hsql = " from " + tableName + "  " + prefix + toWhereSQL(prefix) + toIsNulSQL(prefix) + toInSQL(prefix) + toLikeSQL(prefix) + toGroupSQL(prefix) + toOrderSQL(prefix);
         getSqlValue().putAll(getSqlLikes());
         getSqlValue().putAll(getIns());
         return toFormatSQL(hsql);
@@ -276,7 +311,7 @@ public class QueryParams {
         params.addIn("name", names);
         params.like("nick", "张");
         params.addOrder("time");
-        String hsql = " from  user"  +  " t " + params.toWhereSQL("t") + params.toInSQL("t") + params.toLikeSQL("t") + params.toGroupSQL("t") + params.toOrderSQL("t");
+        String hsql = " from  user" + " t " + params.toWhereSQL("t") + params.toInSQL("t") + params.toLikeSQL("t") + params.toGroupSQL("t") + params.toOrderSQL("t");
         System.out.println("hsql:" + hsql);
         params.getSqlValue().putAll(params.getSqlLikes());
         params.getSqlValue().putAll(params.getIns());
@@ -286,11 +321,9 @@ public class QueryParams {
 
     }
 
-    public void atts(Object ... os)
-    {
+    public void atts(Object... os) {
         System.out.println("参数:");
-        for (Object o : os)
-        {
+        for (Object o : os) {
             System.out.print(o);
             System.out.print(",");
         }
