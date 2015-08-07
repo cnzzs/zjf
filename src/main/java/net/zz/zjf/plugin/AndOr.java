@@ -12,7 +12,7 @@ public enum AndOr {
     }, OR{
         @Override
         public String toMatchString(String propertyName, String pattern) {
-            return String.format(" and %s %s ", propertyName, pattern);
+            return String.format(" or %s %s ", propertyName, pattern);
         }
     }, NUL{
         @Override

@@ -11,7 +11,7 @@ import java.util.regex.Pattern;
  * Created by ZaoSheng on 2015/8/5.
  */
 public class Where {
-
+    private String first = null;
     private Map<String, Object[]> wheres = new HashMap<String, Object[]>();
     private Map<String, Object> attrs = new HashMap<String, Object>();
     private List<Object> paras = new ArrayList<Object>();
@@ -23,21 +23,33 @@ public class Where {
     }
 
     public Where(String propertyName, Object value, AndOr andor, Restriction restriction) {
-        add(propertyName, value, andor, restriction);
+        first = propertyName;
+       add(propertyName, value, andor, restriction);
     }
 
     public Where(String propertyName, Object value, AndOr andor) {
-        add(propertyName, value, andor, Restriction.EQ);
+        this(propertyName, value, andor, Restriction.EQ);
     }
 
     public Where(String propertyName, Object value, Restriction restriction) {
-        and(propertyName, value, restriction);
+        this(propertyName, value, AndOr.NUL, restriction);
     }
 
     public Where(String propertyName, Object value) {
-        and(propertyName, value);
+        this(propertyName, value, Restriction.EQ);
     }
 
+    public Map<String, Object[]> getWheres() {
+        return wheres;
+    }
+
+    public Map<String, Object> getAttrs() {
+        return attrs;
+    }
+
+    public List<Object> getParas() {
+        return paras;
+    }
 
     public Where and(String propertyName, Object value, Restriction restriction) {
         add(propertyName, value, AndOr.AND, restriction);
@@ -58,7 +70,11 @@ public class Where {
     }
 
     protected void add(String key, Object value, AndOr andor, Restriction restriction) {
-        if (null == key || "".equals(key)) {
+        if (null == value || "".equals(value)) {
+            if (key.equals(first))
+            {
+                first = null;
+            }
             wheres.remove(key);
         } else {
             wheres.put(key, new Object[]{value, andor, restriction});
@@ -69,27 +85,37 @@ public class Where {
     protected String toWhereSql() {
         if (wheres.isEmpty()) return "";
         StringBuilder sb = new StringBuilder();
+        if (null != first)  setSql(first, wheres.get(first), sb );
+
         for (String key : wheres.keySet()) {
+            if (key.equals(first))  continue;
+
             Object[] objects = wheres.get(key);
-            AndOr andOr = (AndOr) objects[1];
-            Restriction restriction = (Restriction)objects[2];
-            switch (restriction) {
-                case LIKE:
-                case LLIKE:
-                case RLIKE:
-                    sb.append(andOr.toMatchString(key, "like :" + key));
-                    attrs.put(key, restriction.toMatchString(objects[0].toString()));
-                    break;
-                case NULL:
-                case NOTNULL:
-                    sb.append(andOr.toMatchString("", restriction.toMatchString(key)));
-                    break;
-                default:
-                    sb.append(andOr.toMatchString(key, restriction.toMatchString(key)));
-                    attrs.put(key, objects[0]);
-            }
+            setSql(key, objects, sb);
+
         }
         return sb.toString();
+    }
+
+    private void setSql(String key, Object[] objects, StringBuilder sb)
+    {
+        AndOr andOr = (AndOr) objects[1];
+        Restriction restriction = (Restriction)objects[2];
+        switch (restriction) {
+            case LIKE:
+            case LLIKE:
+            case RLIKE:
+                sb.append(andOr.toMatchString(key, "like :" + key));
+                attrs.put(key, restriction.toMatchString(objects[0].toString()));
+                break;
+            case NULL:
+            case NOTNULL:
+                sb.append(andOr.toMatchString("", restriction.toMatchString(key)));
+                break;
+            default:
+                sb.append(andOr.toMatchString(key, restriction.toMatchString(key)));
+                attrs.put(key, objects[0]);
+        }
     }
 
 
@@ -132,7 +158,24 @@ public class Where {
 
     @Override
     public String toString() {
+        paras.clear();
+        return toFormatSQL(toWhereSql(), attrs, paras);
+    }
 
-        return "";
+    public static void main(String[] args) {
+        Where where = new Where("name", "张三");
+        where.or("class", 1);
+        where.and("sex", true);
+        List<Object> ids = new ArrayList<Object>();
+        ids.add(1);
+        ids.add(2);
+        where.and("id", ids, Restriction.IN);
+        System.out.println(where.toString());
+
+        for (Object value :where.getParas())
+        {
+            System.out.print(String.format("%s ", value));
+        }
+
     }
 }
