@@ -22,13 +22,13 @@ public class QueryParams {
 
 //    private Map<String, List<Object>> mutValues = new HashMap<String, List<Object>>();
 
-    public QueryParams addOrder(String key, OrderAD ad) {
+    public QueryParams addOrder(String key, Order.OrderAD ad) {
         orders.put(key, ad.name());
         return this;
     }
 
     public QueryParams addOrder(String key) {
-        orders.put(key, OrderAD.DESC.name());
+        orders.put(key, Order.OrderAD.DESC.name());
         return this;
     }
 

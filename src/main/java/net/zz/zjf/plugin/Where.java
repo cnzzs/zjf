@@ -1,9 +1,6 @@
 package net.zz.zjf.plugin;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -82,7 +79,7 @@ public class Where {
 
     }
 
-    protected String toWhereSql() {
+    protected String toSQL() {
         if (wheres.isEmpty()) return "";
         StringBuilder sb = new StringBuilder();
         if (null != first)  setSql(first, wheres.get(first), sb );
@@ -119,9 +116,9 @@ public class Where {
     }
 
 
-    public String formatWhereSQL(String whereSQL) {
+    public String formatWhereSQL() {
         paras.clear();
-        return toFormatSQL(whereSQL, attrs, paras);
+        return toFormatSQL(toSQL(), attrs, paras);
     }
 
     /**
@@ -158,11 +155,12 @@ public class Where {
 
     @Override
     public String toString() {
-        paras.clear();
-        return toFormatSQL(toWhereSql(), attrs, paras);
+        return formatWhereSQL();
     }
 
     public static void main(String[] args) {
+        Calendar c = new GregorianCalendar();
+
         Where where = new Where("name", "张三");
         where.or("class", 1);
         where.and("sex", true);
@@ -176,6 +174,6 @@ public class Where {
         {
             System.out.print(String.format("%s ", value));
         }
-
+        System.out.println(System.currentTimeMillis());
     }
 }

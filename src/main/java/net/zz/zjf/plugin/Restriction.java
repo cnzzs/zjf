@@ -49,7 +49,7 @@ public enum Restriction {
     LE {
         @Override
         public String toMatchString(String pattern) {
-            return "> :" + pattern;
+            return "<= :" + pattern;
         }
     },
 
@@ -59,7 +59,7 @@ public enum Restriction {
     LT {
         @Override
         public String toMatchString(String pattern) {
-            return "> :" + pattern;
+            return "< :" + pattern;
         }
     },
 
