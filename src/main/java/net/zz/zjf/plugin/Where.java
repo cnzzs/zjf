@@ -8,7 +8,7 @@ import java.util.regex.Pattern;
 /**
  * Created by ZaoSheng on 2015/8/5.
  */
-public class Where {
+public class Where implements SQLParams{
     private String first = null;
     private Map<String, Object[]> wheres = new HashMap<String, Object[]>();
     private Map<String, Object> attrs = new HashMap<String, Object>();
@@ -78,7 +78,9 @@ public class Where {
 
     }
 
-    protected String toSQL() {
+
+
+    public String toSQL() {
         if (wheres.isEmpty()) return "";
         StringBuilder sb = new StringBuilder();
         if (null != first)  setSql(first, wheres.get(first), sb );
@@ -120,10 +122,9 @@ public class Where {
         }
     }
 
-
-    public String formatWhereSQL() {
-        paras.clear();
-        return toFormatSQL(toSQL(), attrs, paras);
+    @Override
+    public String toFormatSQL() {
+        return  toFormatSQL(toSQL(), attrs, paras);
     }
 
     /**
@@ -159,7 +160,7 @@ public class Where {
 
     @Override
     public String toString() {
-        return formatWhereSQL();
+        return toFormatSQL();
     }
 
     public static void main(String[] args) {
