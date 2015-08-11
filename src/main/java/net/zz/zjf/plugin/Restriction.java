@@ -62,6 +62,15 @@ public enum Restriction {
             return "< :" + pattern;
         }
     },
+    /**
+     * 小于查询（from Object o where o.property between ? and ?）
+     */
+    BETWEEN {
+        @Override
+        public String toMatchString(String pattern) {
+            return String.format("%s between :%s1 and :%s2", pattern, pattern, pattern);
+        }
+    },
 
     /**
      * 包含查询（from Object o where o.property in(?,?,?)）

@@ -1,5 +1,6 @@
 package net.zz.zjf.plugin;
 
+import java.lang.reflect.Array;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
@@ -12,8 +13,6 @@ public class Where {
     private Map<String, Object[]> wheres = new HashMap<String, Object[]>();
     private Map<String, Object> attrs = new HashMap<String, Object>();
     private List<Object> paras = new ArrayList<Object>();
-
-
 
     public Where() {
 
@@ -109,6 +108,12 @@ public class Where {
             case NOTNULL:
                 sb.append(andOr.toMatchString("", restriction.toMatchString(key)));
                 break;
+            case BETWEEN:
+                sb.append(andOr.toMatchString(key, restriction.toMatchString(key)));
+                Object[] value = (Object[]) objects[0];
+                attrs.put(String.format("%s1", key),  value[0]);
+                attrs.put(String.format("%s2", key),  value[1]);
+                break;
             default:
                 sb.append(andOr.toMatchString(key, restriction.toMatchString(key)));
                 attrs.put(key, objects[0]);
@@ -133,7 +138,6 @@ public class Where {
         while (matcher.find()) {
             String group = matcher.group(1);
             Object ov = attrs.get(group);
-
             if (ov instanceof List) {
                 StringBuilder sb = new StringBuilder();
                 List vs = (List) ov;
@@ -162,11 +166,12 @@ public class Where {
         Calendar c = new GregorianCalendar();
 
         Where where = new Where("name", "张三");
-        where.or("class", 1);
+        where.or("class", 2);
         where.and("sex", true);
+        where.and("age", new Integer[]{1,10}, Restriction.BETWEEN);
         List<Object> ids = new ArrayList<Object>();
-        ids.add(1);
-        ids.add(2);
+        ids.add(4);
+        ids.add(3);
         where.and("id", ids, Restriction.IN);
         System.out.println(where.toString());
 
@@ -174,6 +179,8 @@ public class Where {
         {
             System.out.print(String.format("%s ", value));
         }
-        System.out.println(System.currentTimeMillis());
+
+
+
     }
 }
