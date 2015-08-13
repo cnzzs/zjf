@@ -9,93 +9,158 @@ import java.util.regex.Pattern;
  * Created by ZaoSheng on 2015/7/15.
  */
 public abstract class QueryParams implements SQLParams {
-    private Integer pageIndex = 1;
-    private Integer pageSize = 10;
-    private StringBuilder sql = null;
+    private Integer pageIndex = null;
+    private Integer pageSize = null;
+    protected StringBuilder sql = null;
+    private Where where = null;
+    private Order order = null;
+    private Group group = null;
 
     public Integer getPageIndex() {
-        return pageIndex;
+        return null == pageIndex ? 1 : pageIndex;
     }
 
     public Integer getPageSize() {
-        return pageSize;
+        return null == pageSize ? 10 : pageSize;
+    }
+
+    public Where getWhere() {
+        return where;
+    }
+
+    public Order getOrder() {
+        return order;
+    }
+
+    public Group getGroup() {
+        return group;
     }
 
     public Map<String, Object> getAttrs() {
-        return null;
+        return null == where ? null : where.getAttrs();
     }
 
     public List<Object> getParas() {
-        return null;
+
+        return null == where ? null : where.getParas();
     }
 
     public String getSqlString() {
         return sql.toString();
     }
+
     public StringBuilder getSql() {
         return sql;
     }
 
-    public  QueryParams builderAttrs(StringBuilder sb){
+
+    public QueryParams builderAttrs(StringBuilder sb) {
         sb.append(toSQL());
         return this;
     }
-    public  QueryParams builderParas(StringBuilder sb){
+
+    public QueryParams builderParas(StringBuilder sb) {
         sb.append(toFormatSQL());
         return this;
     }
 
-    public QueryParams builderAttrs(){
+    public QueryParams builderAttrs() {
         if (null == sql) sql = new StringBuilder();
-
-        sql.append(toSQL());
+        if (null == where)  sql.append(where.toFormatSQL());
+        if (null == order)  sql.append(order.toFormatSQL());
+        if (null == group)  sql.append(group.toFormatSQL());
         return this;
     }
-    public QueryParams builderParas(){
+
+    public QueryParams builderParas() {
         if (null == sql) sql = new StringBuilder();
-
-        sql.append(toFormatSQL());
+        if (null == where)  sql.append(where.toFormatSQL());
+        if (null == order)  sql.append(order.toFormatSQL());
+        if (null == group)  sql.append(group.toFormatSQL());
         return this;
     }
 
-    public QueryParams builder(){
+    public QueryParams builder() {
 
         return this;
     }
 
-    public static Where Where(){
+    public Where where() {
+        if (this instanceof Where)
+        {
+            where = (Where) this;
+        }else{
+            if (null == where) where = new Where();
+        }
+        return where;
+    }
+
+    public Where where(String key, Object value) {
+
+        return where().add(key, value);
+    }
+
+    public Where where(String key, Object value, String prefix) {
+        return where().add(key, value, prefix);
+    }
+
+    public Order order() {
+        if (null == order) order = new Order();
+
+        return order;
+    }
+
+    public Order order(String key) {
+        return order().DESC(key);
+    }
+
+    public Order order(String key, String prefix) {
+        return order().DESC(key, prefix);
+    }
+
+    public Group group() {
+        if (null == group) group = new Group();
+
+        return group;
+    }
+
+    public Group group(String key) {
+        return group().add(key);
+    }
+
+    public Group group(String key, String prefix) {
+        return group().add(key, prefix);
+    }
+
+
+    public Where WHERE() {
         return new Where();
     }
 
-    public static Where Where(String key, Object value){
+    public static Where WHERE(String key, Object value) {
         return new Where(key, value);
     }
 
-    public static Where Where(String key, Object value, String prefix){
+    public static Where WHERE(String key, Object value, String prefix) {
         return new Where(key, value, prefix);
     }
 
 
-    public static Order Order(String key)
-    {
+    public static Order ORDER(String key) {
         return new Order(key);
     }
 
-    public static Order Order(String key, String prefix)
-    {
+    public static Order ORDER(String key, String prefix) {
         return new Order(key, prefix);
     }
 
-    public static Group Group(String key, String prefix)
-    {
+    public static Group GROUP(String key, String prefix) {
         return new Group(key, prefix);
     }
 
-    public static Group Group(String key)
-    {
+    public static Group GROUP(String key) {
         return new Group(key, null);
     }
-
 
     /**
      * @param whereSQL
@@ -131,10 +196,15 @@ public abstract class QueryParams implements SQLParams {
     public static void main(String[] args) {
         StringBuilder sb = new StringBuilder();
 
-        QueryParams.Where("name1", "张三", "m").or("name","张三", "c").builderAttrs(sb).Order("aa").ASC("bb").builderAttrs(sb).Group("name").add("age").builderAttrs(sb);
+//        QueryParams.WHERE("name1", "张三", "m").or("name", "张三", "c").builderAttrs(sb).ORDER("aa").ASC("bb").builderAttrs(sb).GROUP("name").add("age").builderAttrs(sb);
+//        System.out.println(sb.toString());
+        System.out.println("___________________________");
 
-        System.out.println(sb.toString());
-        System.out.println( QueryParams.Where("name1", "张三", "m").or("name", "张三", "c").builderAttrs().getSql().append(Order("aa").ASC("bb").builderAttrs().getSql().append(Group("name").add("age").builderAttrs().getSqlString()).toString()).toString());
-
+        QueryParams params = new Where();
+        System.out.println(params);
+        params.where("name", "李斯哦").and("no", new Object[]{12, 14}, Restriction.BETWEEN).or("class", 2);
+        params.order("id").ASC("no");
+        params.group("qq");
+        System.out.println(params.builderAttrs().getSqlString());
     }
 }

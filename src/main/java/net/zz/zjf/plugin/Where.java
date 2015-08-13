@@ -20,8 +20,6 @@ public class Where extends QueryParams {
 
     }
 
-
-
     public  Where(String propertyName, Object value, String prefix) {
         first = propertyName;
         add(propertyName, value, AndOr.NUL, Restriction.EQ, prefix);
@@ -33,6 +31,21 @@ public class Where extends QueryParams {
 
     public Map<String, Object[]> getWheres() {
         return wheres;
+    }
+
+
+    public QueryParams builderAttrs() {
+        if (null == sql) sql = new StringBuilder();
+
+        sql.append(toSQL());
+        return this;
+    }
+
+    public QueryParams builderParas() {
+        if (null == sql) sql = new StringBuilder();
+
+        sql.append(toFormatSQL());
+        return this;
     }
 
     public Where and(String propertyName, Object value, Restriction restriction, String prefix) {
