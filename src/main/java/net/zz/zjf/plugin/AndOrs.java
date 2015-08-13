@@ -3,7 +3,7 @@ package net.zz.zjf.plugin;
 /**
  * Created by ZaoSheng on 2015/8/5.
  */
-public enum AndOr {
+public enum AndOrs {
     AND{
         @Override
         public String toMatchString(String propertyName, String pattern) {

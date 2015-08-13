@@ -13,13 +13,17 @@ import java.util.*;
  */
 public class Model<M extends net.zz.zjf.plugin.Model, PK extends Serializable> extends com.jfinal.plugin.activerecord.Model<M> {
 
-   /* private String getSqlExceptSelect(QueryParams params)
+    private String getSqlExceptSelect(QueryParams ...params)
     {
-        String hsql = " from " + getTableName() +  " t " + params.toWhereSQL("t") + params.toInSQL("t") + params.toLikeSQL("t") + params.toGroupSQL("t") + params.toOrderSQL("t");
-        params.getSqlValue().putAll(params.getSqlLikes());
-        params.getSqlValue().putAll(params.getIns());
-        return params.toFormatSQL(hsql);
-    }*/
+        StringBuilder sb = new StringBuilder();
+        sb.append(" from " + getTableName());
+
+        for (QueryParams param :params )
+        {
+            param.builderAttrs(sb);
+        }
+        return sb.toString();
+    }
 
     public Long countSqlResult(String sqlExceptSelect, Object... params) {
         List result = Db.query("SELECT COUNT(*) " + DbKit.replaceFormatSqlOrderBy(sqlExceptSelect), params);
@@ -156,9 +160,9 @@ public class Model<M extends net.zz.zjf.plugin.Model, PK extends Serializable> e
      * @param isPage
      * @return
      */
-    public Page<M> queryPageUseSQL(QueryParams params, boolean isPage) {
+    public Page<M> queryPageUseSQL(boolean isPage, QueryParams... params) {
 
-        String sqlExceptSelect = params.toSqlExceptSelect(getTableName(), "t");
+      /*  String sqlExceptSelect = params.toSqlExceptSelect(getTableName(), "t");
         if (isPage) {
             return paginate(params.getPageIndex(), params.getPageSize(), "SELECT * ", sqlExceptSelect, params.getParas().toArray());
         }
@@ -175,7 +179,8 @@ public class Model<M extends net.zz.zjf.plugin.Model, PK extends Serializable> e
         }
 
         List list = find(String.format("SELECT * ", sqlExceptSelect.toString()), params.getParas().toArray());
-        return new Page(list, 1, (int) totalRow, 1, (int) totalRow);
+        return new Page(list, 1, (int) totalRow, 1, (int) totalRow);*/
+        return null;
     }
 
     /**
@@ -183,8 +188,9 @@ public class Model<M extends net.zz.zjf.plugin.Model, PK extends Serializable> e
      * @return List
      */
     public List<M> findByProperty(QueryParams params) {
-        String sqlExceptSelect = params.toSqlExceptSelect(getTableName(), "t");
-        return find(String.format("SELECT * ", sqlExceptSelect.toString()), params.getParas().toArray());
+       /* String sqlExceptSelect = params.toSqlExceptSelect(getTableName(), "t");
+        return find(String.format("SELECT * ", sqlExceptSelect.toString()), params.getParas().toArray());*/
+        return null;
     }
 
     /**
@@ -282,9 +288,10 @@ public class Model<M extends net.zz.zjf.plugin.Model, PK extends Serializable> e
 
 
     public M findFirst(QueryParams params) {
-        String hsql = " FROM " + getTableName() + " t " + params.toWhereSQL("t");
+    /*    String hsql = " FROM " + getTableName() + " t " + params.toWhereSQL("t");
         M value = this.findFirst(String.format("SELECT * %s", params.toFormatSQL(hsql)), params.getParas().toArray());
-        return value;
+        return value;*/
+        return null;
     }
 
     public boolean saveOrUpdate() {
@@ -378,14 +385,14 @@ public class Model<M extends net.zz.zjf.plugin.Model, PK extends Serializable> e
      * @return List
      */
     public List<M> get(Collection<Object> ids) {
-        if (ids.size() <= 0) {
+      /*  if (ids.size() <= 0) {
             return Collections.emptyList();
         }
         QueryParams params = new QueryParams();
         params.addIn(getPrimaryKey(), ids);
         String sqlExceptSelect = params.toSqlExceptSelect(getTableName(), "m");
-        return find(String.format("SELECT * %s", sqlExceptSelect), params.getParas().toArray());
-
+        return find(String.format("SELECT * %s", sqlExceptSelect), params.getParas().toArray());*/
+        return null;
     }
 
 

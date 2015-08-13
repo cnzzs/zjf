@@ -3,7 +3,7 @@ package net.zz.zjf.plugin;
 /**
  * Created by ZaoSheng on 2015/7/30.
  */
-public enum Restriction {
+public enum Restrictions {
 
     /**
      * 等于查询（from Object o where o.property = ?）

@@ -6,8 +6,8 @@ import java.util.Map;
 /**
  * Created by ZaoSheng on 2015/8/5.
  */
-public class Order implements SQLParams {
-    private Map<String, String[]> orders;
+public class Order extends QueryParams {
+    private Map<String, String[]> orders = null;
 
     public enum OrderAD {
         ASC, DESC
@@ -17,27 +17,30 @@ public class Order implements SQLParams {
 
     }
 
-    public Order(String key) {
+    public Order(String key, String prefix ) {
+        add(key, OrderAD.DESC, prefix);
+    }
+
+    public Order(String key ) {
         add(key, OrderAD.DESC, null);
     }
 
-    public Order(String key, OrderAD value) {
-        add(key, value, null);
+    public Order DESC(String key) {
+        return add(key, OrderAD.DESC, null);
     }
-    public Order(String key, OrderAD value, String prefix ) {
-        add(key, value, prefix);
-    }
-
-    public Order add(String key) {
-        return add(key, OrderAD.DESC);
+    public Order DESC(String key, String prefix ) {
+        return add(key, OrderAD.DESC, prefix);
     }
 
-    public Order add(String key, OrderAD value) {
-
-        return add(key, value, null);
+    public Order ASC(String key, String prefix ) {
+        return add(key, OrderAD.ASC, prefix);
     }
 
-    public Order add(String key, OrderAD value, String prefix) {
+    public Order ASC(String key ) {
+        return add(key, OrderAD.ASC, null);
+    }
+
+    protected Order add(String key, OrderAD value, String prefix) {
         if (null == orders) orders = new HashMap<String, String[]>();
 
         if (null == value) {
@@ -76,8 +79,8 @@ public class Order implements SQLParams {
 
     public static void main(String[] args) {
         Order order = new Order();
-        order.add("id");
-        order.add("qq", OrderAD.DESC, "t");
+        order.ASC("id");
+        order.DESC("qq", "t");
         System.out.println(order.toSQL());
     }
 
