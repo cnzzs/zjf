@@ -35,16 +35,24 @@ public class Where extends QueryParams {
 
 
     public QueryParams builderAttrs() {
-        if (null == sql) sql = new StringBuilder();
+       if (null != getWhere()) super.builderAttrs();
+        else {
+           if (null == sql) sql = new StringBuilder();
 
-        sql.append(toSQL());
+           sql.append(toSQL());
+       }
         return this;
     }
 
     public QueryParams builderParas() {
-        if (null == sql) sql = new StringBuilder();
+        if (null != getWhere()) super.builderAttrs();
+        else {
+            if (null == sql) sql = new StringBuilder();
 
-        sql.append(toFormatSQL());
+            sql.append(toFormatSQL());
+        }
+
+
         return this;
     }
 
@@ -84,10 +92,11 @@ public class Where extends QueryParams {
     }
 
     public Where add(String propertyName, Object value) {
-        add(propertyName, value, AndOr.NUL, Restriction.EQ, null);
+        add(propertyName, value, null);
         return this;
     }
     public Where add(String propertyName, Object value, String prefix) {
+        if (null == first)  first = propertyName;
         add(propertyName, value, AndOr.NUL, Restriction.EQ, prefix);
         return this;
     }
@@ -99,7 +108,7 @@ public class Where extends QueryParams {
                 break;
             default:
                 if (null == value || "".equals(value)) {
-                    if (key.equals(first)) first = null;
+                        if (key.equals(first)) first = null;
                     wheres.remove(key);
                 } else {
                     wheres.put(key, new Object[]{value, andor, restriction, prefix});
@@ -141,7 +150,8 @@ public class Where extends QueryParams {
                 sb.append(andOr.toMatchString(prefix, restriction.toMatchString(key)));
                 break;
             case BETWEEN:
-                sb.append(andOr.toMatchString(prefix + key, restriction.toMatchString(key)));
+                System.out.println(restriction.toMatchString(key));
+                sb.append(andOr.toMatchString(prefix , restriction.toMatchString(key)));
                 Object[] value = (Object[]) objects[0];
                 attrs.put(String.format("%s1", key), value[0]);
                 attrs.put(String.format("%s2", key), value[1]);

@@ -40,6 +40,28 @@ public class Order extends QueryParams {
         return add(key, OrderAD.ASC, null);
     }
 
+    public QueryParams builderAttrs() {
+        if (null != getOrder()) super.builderAttrs();
+        else {
+            if (null == sql) sql = new StringBuilder();
+
+            sql.append(toSQL());
+        }
+        return this;
+    }
+
+    public QueryParams builderParas() {
+        if (null != getOrder()) super.builderAttrs();
+        else {
+            if (null == sql) sql = new StringBuilder();
+
+            sql.append(toFormatSQL());
+        }
+
+
+        return this;
+    }
+
     protected Order add(String key, OrderAD value, String prefix) {
         if (null == orders) orders = new HashMap<String, String[]>();
 

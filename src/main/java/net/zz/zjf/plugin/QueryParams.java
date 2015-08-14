@@ -66,17 +66,17 @@ public abstract class QueryParams implements SQLParams {
 
     public QueryParams builderAttrs() {
         if (null == sql) sql = new StringBuilder();
-        if (null == where)  sql.append(where.toFormatSQL());
-        if (null == order)  sql.append(order.toFormatSQL());
-        if (null == group)  sql.append(group.toFormatSQL());
+        if (null != where)  sql.append(where.toFormatSQL());
+        if (null != order)  sql.append(order.toFormatSQL());
+        if (null != group)  sql.append(group.toFormatSQL());
         return this;
     }
 
     public QueryParams builderParas() {
         if (null == sql) sql = new StringBuilder();
-        if (null == where)  sql.append(where.toFormatSQL());
-        if (null == order)  sql.append(order.toFormatSQL());
-        if (null == group)  sql.append(group.toFormatSQL());
+        if (null != where)  sql.append(where.toFormatSQL());
+        if (null != order)  sql.append(order.toFormatSQL());
+        if (null != group)  sql.append(group.toFormatSQL());
         return this;
     }
 
@@ -201,10 +201,11 @@ public abstract class QueryParams implements SQLParams {
         System.out.println("___________________________");
 
         QueryParams params = new Where();
-        System.out.println(params);
-        params.where("name", "李斯哦").and("no", new Object[]{12, 14}, Restriction.BETWEEN).or("class", 2);
-        params.order("id").ASC("no");
-        params.group("qq");
+
+        params.where("name", "李斯哦", "t").or("no", new Object[]{12, 14}, Restriction.BETWEEN,"a").or("class", 2,"a");
+        params.order("id","t").ASC("no","a");
+        params.group("qq","t");
+//        where.and("a", new Object[]{"b","d"},Restriction.BETWEEN,"c");
         System.out.println(params.builderAttrs().getSqlString());
     }
 }

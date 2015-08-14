@@ -26,6 +26,28 @@ public class Group  extends QueryParams {
         return add(key, null);
     }
 
+    public QueryParams builderAttrs() {
+        if (null != getGroup()) super.builderAttrs();
+        else {
+            if (null == sql) sql = new StringBuilder();
+
+            sql.append(toSQL());
+        }
+        return this;
+    }
+
+    public QueryParams builderParas() {
+        if (null != getGroup()) super.builderAttrs();
+        else {
+            if (null == sql) sql = new StringBuilder();
+
+            sql.append(toFormatSQL());
+        }
+
+
+        return this;
+    }
+
     public Group add(String key, String prefix) {
         if (key == null || "".equals(key)) return this;
 
