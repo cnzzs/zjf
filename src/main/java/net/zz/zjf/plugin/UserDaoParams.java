@@ -6,9 +6,8 @@ import java.util.List;
 /**
  * user 请求参数封装类
  * Thu May 07 10:28:37 CST 2015 ZaoSheng
+ * 实体对映的DaoParams实现（Demo）。具体可以生成。
  */
-
-
 public class UserDaoParams extends Where {
     public enum Field {
         userId("user_id"), pid("pid"), status("status");
