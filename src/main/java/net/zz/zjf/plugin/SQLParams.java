@@ -8,4 +8,7 @@ public interface SQLParams {
 
    String toFormatSQL();
    String toSQL();
+    public QueryParams builderAttrs();
+    public QueryParams builderParas();
+
 }

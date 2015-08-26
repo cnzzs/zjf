@@ -2,6 +2,7 @@ package net.zz.zjf.plugin;
 
 
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
@@ -41,7 +42,6 @@ public abstract class QueryParams implements SQLParams {
     }
 
     public List<Object> getParas() {
-
         return null == where ? null : where.getParas();
     }
 
@@ -65,15 +65,15 @@ public abstract class QueryParams implements SQLParams {
     }
 
     public QueryParams builderAttrs() {
-        if (null == sql) sql = new StringBuilder();
-        if (null != where)  sql.append(where.toFormatSQL());
-        if (null != order)  sql.append(order.toFormatSQL());
-        if (null != group)  sql.append(group.toFormatSQL());
+        if (null == sql) sql = new StringBuilder(); else sql.setLength(0);
+        if (null != where)  sql.append(where.toSQL());
+        if (null != order)  sql.append(order.toSQL());
+        if (null != group)  sql.append(group.toSQL());
         return this;
     }
 
     public QueryParams builderParas() {
-        if (null == sql) sql = new StringBuilder();
+        if (null == sql) sql = new StringBuilder(); else sql.setLength(0);
         if (null != where)  sql.append(where.toFormatSQL());
         if (null != order)  sql.append(order.toFormatSQL());
         if (null != group)  sql.append(group.toFormatSQL());
@@ -202,10 +202,11 @@ public abstract class QueryParams implements SQLParams {
 
         QueryParams params = new Where();
 
-        params.where("name", "李斯哦", "t").or("no", new Object[]{12, 14}, Restriction.BETWEEN,"a").or("class", 2,"a");
+        params.where("name", "李斯哦", "t").or("no", new Object[]{12, 14}, Restriction.BETWEEN,"a").or("class", 2,"a").and("sex", null, Restriction.NULL, "t" );
         params.order("id","t").ASC("no","a");
         params.group("qq","t");
 //        where.and("a", new Object[]{"b","d"},Restriction.BETWEEN,"c");
         System.out.println(params.builderAttrs().getSqlString());
+//        System.out.println(params.builderParas().getSqlString());
     }
 }

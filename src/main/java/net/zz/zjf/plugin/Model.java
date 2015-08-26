@@ -160,7 +160,7 @@ public class Model<M extends net.zz.zjf.plugin.Model, PK extends Serializable> e
      * @param isPage
      * @return
      */
-    public Page<M> queryPageUseSQL(boolean isPage, QueryParams... params) {
+    public Page<M> queryPageUseSQL(boolean isPage, QueryParams params) {
 
       /*  String sqlExceptSelect = params.toSqlExceptSelect(getTableName(), "t");
         if (isPage) {
