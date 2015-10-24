@@ -1,28 +1,29 @@
 package net.zz.zjf.plugin;
 
 import com.jfinal.plugin.activerecord.*;
+import net.zz.dao.params.Params;
+import net.zz.dao.params.QueryParams;
+import net.zz.dao.params.Restriction;
+import net.zz.dao.params.Where;
+
 
 import java.io.Serializable;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * Created by ZaoSheng on 2015/7/15.
  */
 public class Model<M extends net.zz.zjf.plugin.Model, PK extends Serializable> extends com.jfinal.plugin.activerecord.Model<M> {
 
-    private String getSqlExceptSelect(QueryParams ...params)
+    private String getSqlExceptSelect(Params params)
     {
-        StringBuilder sb = new StringBuilder();
-        sb.append(" from " + getTableName());
-
-        for (QueryParams param :params )
-        {
-            param.builderAttrs(sb);
-        }
-        return sb.toString();
+        QueryParams queryParams = params.builderParas();
+        return  String.format(" from %s %s where %s", getTableName(), queryParams.alias(), queryParams.getSqlString());
     }
 
     public Long countSqlResult(String sqlExceptSelect, Object... params) {
@@ -31,15 +32,12 @@ public class Model<M extends net.zz.zjf.plugin.Model, PK extends Serializable> e
         if (size == 1) {
             return ((Number) result.get(0)).longValue();
         }
-
         return Long.valueOf(0);
     }
 
-    public Long countSqlResult(String shql, Map<String, Object> attrs) {
+    public Long countSqlResult(String sql, Map<String, Object> attrs) {
         List<Object> params = new ArrayList<Object>();
-        String sqlExceptSelect = QueryParams.toFormatSQL(shql, attrs, params);
-
-
+        String sqlExceptSelect = QueryParams.toFormatSQL(sql, attrs, params);
         return countSqlResult(sqlExceptSelect, params.toArray());
     }
 
@@ -58,13 +56,11 @@ public class Model<M extends net.zz.zjf.plugin.Model, PK extends Serializable> e
         List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
         for (Record record : records) {
             list.add(record.getColumns());
-
         }
         return list;
     }
 
     /**
-    *
     *  例子：
     *  queryOrNamedQuery="select * from zz z where z.name = :name"
     * attrs.put("name", "张三")
@@ -80,7 +76,6 @@ public class Model<M extends net.zz.zjf.plugin.Model, PK extends Serializable> e
         List<Map<String, Object>> list = new ArrayList<Map<String, Object>>();
         for (Record record : records) {
             list.add(record.getColumns());
-
         }
         return list;
     }
@@ -160,11 +155,11 @@ public class Model<M extends net.zz.zjf.plugin.Model, PK extends Serializable> e
      * @param isPage
      * @return
      */
-    public Page<M> queryPageUseSQL(boolean isPage, QueryParams params) {
+    public Page<M> queryPageUseSQL(boolean isPage, Params params) {
 
-      /*  String sqlExceptSelect = params.toSqlExceptSelect(getTableName(), "t");
+     String sqlExceptSelect = getSqlExceptSelect(params);
         if (isPage) {
-            return paginate(params.getPageIndex(), params.getPageSize(), "SELECT * ", sqlExceptSelect, params.getParas().toArray());
+            return paginate(params.getPage().getPageIndex(), params.getPage().getPageSize(), "SELECT * ", sqlExceptSelect, params.getParas().toArray());
         }
         long totalRow = 0L;
         List result = Db.query("SELECT COUNT(*) " + DbKit.replaceFormatSqlOrderBy(sqlExceptSelect), params.getParas().toArray());
@@ -178,19 +173,18 @@ public class Model<M extends net.zz.zjf.plugin.Model, PK extends Serializable> e
             totalRow = (long) result.size();
         }
 
-        List list = find(String.format("SELECT * ", sqlExceptSelect.toString()), params.getParas().toArray());
-        return new Page(list, 1, (int) totalRow, 1, (int) totalRow);*/
-        return null;
+        List list = find("SELECT * " +  sqlExceptSelect, params.getParas().toArray());
+        return new Page(list, 1, (int) totalRow, 1, (int) totalRow);
+
     }
 
     /**
      * @param params 查询参数
      * @return List
      */
-    public List<M> findByProperty(QueryParams params) {
-       /* String sqlExceptSelect = params.toSqlExceptSelect(getTableName(), "t");
-        return find(String.format("SELECT * ", sqlExceptSelect.toString()), params.getParas().toArray());*/
-        return null;
+    public List<M> findByProperty(Params params) {
+        String sqlExceptSelect = getSqlExceptSelect(params);
+        return find("SELECT * " + sqlExceptSelect, params.getParas().toArray());
     }
 
     /**
@@ -202,29 +196,29 @@ public class Model<M extends net.zz.zjf.plugin.Model, PK extends Serializable> e
      */
     public List<M> findByProperty(String propertyName, Object value) {
 
-        return findByProperty(propertyName, value, Restriction.EQ);
+        return findByProperty( Restriction.EQ, propertyName, value);
     }
 
     /**
      * 通过orm实体属性名称查询全部
      *
      * @param propertyName orm实体属性名称
-     * @param restriction
+     * @param isNull true 为 value=null
      * @return M
      */
-    public M findFirstByIsNull(String propertyName, Restriction restriction) {
-        List<M> result = findByProperty(propertyName, null, restriction);
+    public M findFirstByIsNull(String propertyName, boolean isNull) {
+        List<M> result = findByProperty(isNull ? Restriction.NULL : Restriction.NOTNULL, propertyName);
         return result.size() > 0 ? result.get(0) : null;
     }
     /**
      * 通过orm实体属性名称查询全部
      *
      * @param propertyName orm实体属性名称
-     * @param restriction
+     * @param isNull true 为 value=null
      * @return  List<M>
      */
-    public List<M>  findByIsNull(String propertyName, Restriction restriction) {
-        return findByProperty(propertyName, null, restriction);
+    public List<M>  findByIsNull(String propertyName, boolean isNull) {
+        return findByProperty(isNull ? Restriction.NULL : Restriction.NOTNULL, propertyName);
     }
 
     /**
@@ -235,63 +229,54 @@ public class Model<M extends net.zz.zjf.plugin.Model, PK extends Serializable> e
      * @return M
      */
     public M findFirst(String propertyName, Object value) {
-        List<M> result = findByProperty(propertyName, value, Restriction.EQ);
+        List<M> result = findByProperty(Restriction.EQ, propertyName, value);
         return result.size() > 0 ? result.get(0) : null;
     }
 
     /**
      * 通过orm实体属性名称查询全部
-     *
+     * @param restriction 规则
      * @param propertyName orm实体属性名称
      * @param value        值
-     * @param restriction      规则
      * @return List
      */
-    public List<M> findByProperty(String propertyName, Object value, Restriction restriction) {
-        String sql = "SELECT * FROM %s WHERE %s %s";
-        Map<String, Object> attrs = new HashMap<String, Object>();
-        switch (restriction)
-        {
-            case LIKE:
-            case LLIKE:
-            case RLIKE:
-                sql = String.format(sql, getTableName(), propertyName, "like :" + propertyName);
-                attrs.put(propertyName, restriction.toMatchString(value.toString()));
-                break;
-            case NULL:
-            case NOTNULL:
-                sql = String.format(sql, getTableName(), propertyName,  restriction.toMatchString(propertyName));
-                break;
-            default:
-                sql = String.format(sql, getTableName(), propertyName,  restriction.toMatchString(propertyName));
-                attrs.put(propertyName, value);
+    public List<M> findByProperty( Restriction restriction, String propertyName, Object ... value) {
+      String whereSQL = restriction.toMatchString(propertyName);
+        Matcher matcher = Pattern.compile(":(\\w+)").matcher(whereSQL);
+        String group;
+        for(String rexp = null; matcher.find(); whereSQL = whereSQL.replace(String.format(":%s", group), rexp)) {
+            group = matcher.group(1);
+            StringBuilder sb = new StringBuilder();
+            for (Object v : value)
+            {
+                sb.append("?,");
+            }
+            sb.deleteCharAt(sb.length() - 1);
+            rexp = sb.toString();
+
         }
-
-        if (attrs.isEmpty()) return  find(sql);
-
-        List<Object> values = new ArrayList<Object>();
-
-        return find( QueryParams.toFormatSQL(sql, attrs, values), values.toArray());
+        return find(String.format("SELECT * from %s %s", getTableName(), whereSQL), value);
     }
 
     /**
      * 通过orm实体属性名称查询全部
      *
+     * @param restriction 规则
      * @param propertyName orm实体属性名称
      * @param value        值
      * @return M
      */
-    public M findFirst(String propertyName, Object value, Restriction restriction) {
-        List<M> result = findByProperty(propertyName, value, restriction);
+    public M findFirst( Restriction restriction, String propertyName, Object ... value) {
+        List<M> result = findByProperty(restriction, propertyName, value);
         return result.size() > 0 ? result.get(0) : null;
     }
 
 
-    public M findFirst(QueryParams params) {
-    /*    String hsql = " FROM " + getTableName() + " t " + params.toWhereSQL("t");
-        M value = this.findFirst(String.format("SELECT * %s", params.toFormatSQL(hsql)), params.getParas().toArray());
-        return value;*/
-        return null;
+    public M findFirst(Params params) {
+
+        M value = this.findFirst("SELECT * ", getSqlExceptSelect(params), params.getParas().toArray());
+        return value;
+
     }
 
     public boolean saveOrUpdate() {
@@ -370,10 +355,25 @@ public class Model<M extends net.zz.zjf.plugin.Model, PK extends Serializable> e
 
     public boolean deleteAllById(List<PK> ids) {
 
+            /*for (PK id : ids) {
+                if (!deleteById(id)) throw new ActiveRecordException("Delete failed :" + id);
+            }*/
+
+        return deleteAllById((PK[])ids.toArray());
+    }
+  public boolean deleteAllById(PK ... ids) {
+
+            /*for (PK id : ids) {
+                if (!deleteById(id)) throw new ActiveRecordException("Delete failed :" + id);
+            }*/
+        StringBuilder sql = new StringBuilder();
+        sql.append("delete from `").append(getTableName()).append("` where `").append(getPrimaryKey()).append(" in ( ");
         for (PK id : ids) {
-            if (!deleteById(id)) throw new ActiveRecordException("Delete failed :" + id);
+            sql.append("?,");
         }
-        return true;
+        sql.deleteCharAt(sql.length() - 1);
+        sql.append(")");
+        return Db.update(sql.toString(), ids) > 0;
     }
 
 
