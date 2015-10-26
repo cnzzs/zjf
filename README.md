@@ -2,9 +2,9 @@
 简单实现JFinal注解配置Controller，Model 
 
 为了减少代码量，提高开发效率，在JFinal之上搭建注解进行配置的简单依赖包。 实现直观的效果
-配合https://github.com/cnzzs/QueryParams实现简单基础框架
+配合https://github.com/cnzzs/QueryParams   实现简单基础框架
 
-maven 配置
+QueryParams的 maven 配置
 
 <dependency>
   <groupId>net.zz.sql</groupId>
