@@ -4,9 +4,6 @@ import com.jfinal.plugin.activerecord.*;
 import net.zz.dao.params.Params;
 import net.zz.dao.params.QueryParams;
 import net.zz.dao.params.Restriction;
-import net.zz.dao.params.Where;
-
-
 import java.io.Serializable;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
@@ -20,7 +17,7 @@ import java.util.regex.Pattern;
  */
 public class Model<M extends net.zz.zjf.plugin.Model, PK extends Serializable> extends com.jfinal.plugin.activerecord.Model<M> {
 
-    private String getSqlExceptSelect(Params params)
+    protected String getSqlExceptSelect(Params params)
     {
         QueryParams queryParams = params.builderParas();
         return  String.format(" from %s %s where %s", getTableName(), queryParams.alias(), queryParams.getSqlString());
@@ -32,7 +29,7 @@ public class Model<M extends net.zz.zjf.plugin.Model, PK extends Serializable> e
         if (size == 1) {
             return ((Number) result.get(0)).longValue();
         }
-        return Long.valueOf(0);
+        return 0L;
     }
 
     public Long countSqlResult(String sql, Map<String, Object> attrs) {
@@ -384,15 +381,13 @@ public class Model<M extends net.zz.zjf.plugin.Model, PK extends Serializable> e
      * @param ids 主键ID集合
      * @return List
      */
-    public List<M> get(Collection<Object> ids) {
-      /*  if (ids.size() <= 0) {
+    public List<M> getByIds(Collection<PK> ids) {
+        if (ids.size() <= 0) {
             return Collections.emptyList();
         }
-        QueryParams params = new QueryParams();
-        params.addIn(getPrimaryKey(), ids);
-        String sqlExceptSelect = params.toSqlExceptSelect(getTableName(), "m");
-        return find(String.format("SELECT * %s", sqlExceptSelect), params.getParas().toArray());*/
-        return null;
+
+        return findByProperty(Restriction.IN, getPrimaryKey(), ids.toArray());
+
     }
 
 
