@@ -1,18 +1,12 @@
 package net.zz.zjf.plugin;
 
-import net.zz.dao.params.AndOr;
 import net.zz.dao.params.Order.OrderAD;
 import net.zz.dao.params.QueryParams;
 import net.zz.dao.params.Restriction;
 import net.zz.dao.params.Where;
 
 import javax.servlet.http.HttpServletRequest;
-import java.math.BigDecimal;
-import java.text.ParseException;
-import java.util.ArrayList;
 import java.util.Enumeration;
-import java.util.List;
-
 
 /**
  * Created by ZaoSheng on 2015/10/25.
@@ -21,7 +15,7 @@ public class SqlFilter {
     private HttpServletRequest request;// 为了获取request里面传过来的动态参数
     private String column;
     private OrderAD order;
-    Where where = new Where();
+    Where params = new Where().where();
 
 	/**
 	 * 默认构造
@@ -47,10 +41,10 @@ public class SqlFilter {
         switch (order)
         {
             case DESC:
-                where.order(column, prefix);
+                params.order(column, prefix);
                 break;
             case ASC:
-                where.order().ASC(column, prefix);
+                params.order().ASC(column, prefix);
                 break;
         }
     }
@@ -66,7 +60,7 @@ public class SqlFilter {
 		if (!isBlank(column) && null != order) {
             int index = column.indexOf(".");
 			if ( index < 1) {
-                setOrderValue( "");
+                setOrderValue(null);
 			}else{
                 setOrderValue( column.substring(index));
             }
@@ -82,7 +76,7 @@ public class SqlFilter {
 				order = OrderAD.valueOf(o);
                 int index = column.indexOf(".");
                 if ( index < 1) {
-                    setOrderValue( "");
+                    setOrderValue( null);
                 }else{
                     setOrderValue( column.substring(index));
                 }
@@ -117,10 +111,10 @@ public class SqlFilter {
 	 * @param name
 	 * @param value
 	 */
-	public void addFilter(String name, String value) {
+	public void addFilter(String name, Object value) {
 		if (name != null && value != null) {
 			if (name.startsWith("QUERY^")) {// 如果有需要过滤的字段
-				String[] filterParams = name.split("^");
+				String[] filterParams = name.split("\\^");
 //				String[] filterParams = StringUtils.split(name, "_");
 				if (filterParams.length == 4) {
                     String[] ppn =  filterParams[1].split("#");
@@ -130,9 +124,9 @@ public class SqlFilter {
 					String operator = filterParams[3];// SQL操作符
 
                     if ("|".equals(ao)){
-                        where.or(propertyName, value, Restriction.valueOf(operator), prefix);
+                        params.or(propertyName, value, Restriction.valueOf(operator), prefix);
                     }else{
-                        where.and(propertyName, value, Restriction.valueOf(operator), prefix);
+                        params.and(propertyName, value, Restriction.valueOf(operator), prefix);
                     }
 				}
 			}
@@ -154,7 +148,26 @@ public class SqlFilter {
 	}
 
     public QueryParams getQueryParams() {
-        return where;
+        return params;
     }
 
+    public String getColumn() {
+        return column;
+    }
+
+    public void setColumn(String column) {
+        this.column = column;
+    }
+
+    public OrderAD getOrder() {
+        return order;
+    }
+
+    public void setOrder(OrderAD order) {
+        this.order = order;
+    }
+
+    public static void main(String[] args) {
+
+    }
 }
