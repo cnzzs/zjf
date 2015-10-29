@@ -1,5 +1,8 @@
 package net.zz.zjf.plugin;
 
+import net.zz.dao.params.Restriction;
+import net.zz.dao.params.Where;
+
 import java.util.Date;
 import java.util.List;
 
@@ -9,6 +12,12 @@ import java.util.List;
  * 实体对映的DaoParams实现（Demo）。具体可以生成。
  */
 public class UserDaoParams extends Where {
+    private static final String ALIAS = "user";
+    public UserDaoParams() {
+        alias = ALIAS;
+        where();
+    }
+
     public enum Field {
         userId("user_id"), pid("pid"), status("status");
         private String column;
