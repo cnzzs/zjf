@@ -1,5 +1,6 @@
 package net.zz.zjf.plugin;
 
+import net.zz.dao.params.Order;
 import net.zz.dao.params.Order.OrderAD;
 import net.zz.dao.params.QueryParams;
 import net.zz.dao.params.Restriction;
@@ -7,6 +8,7 @@ import net.zz.dao.params.Where;
 
 import javax.servlet.http.HttpServletRequest;
 import java.util.Enumeration;
+import java.util.Map;
 
 /**
  * Created by ZaoSheng on 2015/10/25.
@@ -169,5 +171,17 @@ public class SqlFilter {
 
     public static void main(String[] args) {
 
+        SqlFilter filter = new SqlFilter();
+        filter.addFilter("QUERY^t#id^|^EQ",1);
+        filter.addFilter("QUERY^t#name^!|^EQ","张三");
+        filter.setColumn("uid");
+        filter.setOrder(Order.OrderAD.DESC);
+        filter.setOrder();
+        QueryParams queryParams = filter.getQueryParams();
+        System.out.println(queryParams.builderAttrs().getSqlString());
+        Map<String, Object> attrs = queryParams.getAttrs();
+        for (String key : attrs.keySet()){
+            System.out.println(String.format("%s=%s",key, attrs.get(key)));
+        }
     }
 }
