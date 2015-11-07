@@ -149,6 +149,12 @@ public class SqlFilter {
 		return col.toString();
 	}
 
+    public SqlFilter setAlias(String alias) {
+        params.setAlias(alias);
+        return this;
+    }
+
+
     public QueryParams getQueryParams() {
         return params;
     }

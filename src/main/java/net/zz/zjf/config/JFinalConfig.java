@@ -2,6 +2,7 @@ package net.zz.zjf.config;
 
 import com.jfinal.config.*;
 import com.jfinal.core.Controller;
+import com.jfinal.log.Logger;
 import com.jfinal.plugin.IPlugin;
 import com.jfinal.plugin.activerecord.ActiveRecordPlugin;
 import com.jfinal.plugin.activerecord.IDataSourceProvider;
@@ -18,7 +19,7 @@ import java.util.Set;
  * Created by ZaoSheng on 2015/5/24.
  */
 public abstract class JFinalConfig  extends com.jfinal.config.JFinalConfig{
-
+    private static final Logger LOG = Logger.getLogger(JFinalConfig.class);
     private static final List<String> controlPackage = new ArrayList<String>();
     private static final List<String> basePackage = new ArrayList<String>();
 
@@ -55,11 +56,13 @@ public abstract class JFinalConfig  extends com.jfinal.config.JFinalConfig{
         Scan driven = new Scan();
         for (String pake : controlPackage){
             Set<Class<?>> clazzs = driven.getClasses(pake);
-            System.out.println("pake: " + pake);
+            /*System.out.println("pake: " + pake);*/
             for (Class<?> clazz : clazzs) {
 //            	System.out.println(clazz.getSuperclass());
-                System.out.println(clazz.getName());
-               if (clazz.getSuperclass() == com.jfinal.core.Controller.class) {
+                LOG.info(clazz.getName());
+                Class<?> superclass = clazz.getSuperclass();
+                Class<?> jfClz = com.jfinal.core.Controller.class;
+                if (superclass ==  jfClz|| superclass.getSuperclass() == jfClz) {
                    C con = clazz.getAnnotation(C.class);
                    if (null != con) {
                        me.add(con.value(), (Class<? extends Controller>) clazz);
@@ -92,9 +95,10 @@ public abstract class JFinalConfig  extends com.jfinal.config.JFinalConfig{
             Set<Class<?>> clazzs = driven.getClasses(pake);
 
             for (Class<?> clazz : clazzs) {
-                System.out.println(clazz.getName());
+                LOG.info(clazz.getName());
                 Class superClass = clazz.getSuperclass();
-                if (superClass == com.jfinal.plugin.activerecord.Model.class || superClass.getSuperclass() ==  com.jfinal.plugin.activerecord.Model.class) {
+                Class<?> jfClz =  com.jfinal.plugin.activerecord.Model.class;
+                if (superClass == jfClz || superClass.getSuperclass() ==  jfClz) {
                    M model = clazz.getAnnotation(M.class);
                     if (null != model) {
                         arp.addMapping(model.value(), model.id(), (Class<? extends Model<?>>) clazz);
@@ -127,17 +131,4 @@ public abstract class JFinalConfig  extends com.jfinal.config.JFinalConfig{
 
     }
 
-    public static void main(String[] args) {
-
-
-        String path = JFinalConfig.class.getClassLoader().getResource("").getPath();
-
-        Scan driven= new Scan();
-        Set<Class<?>> cls=driven.getClasses("net.zz.model");
-
-        for (Class<?> clazz : cls) {
-        	System.out.println(clazz.getSuperclass() );
-            System.out.println(clazz.getName());
-        }
-    }
 }

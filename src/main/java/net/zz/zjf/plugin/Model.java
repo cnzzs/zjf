@@ -20,7 +20,7 @@ public class Model<M extends net.zz.zjf.plugin.Model, PK extends Serializable> e
     protected String getSqlExceptSelect(Params params)
     {
         QueryParams queryParams = params.builderParas();
-        return  String.format(" from %s %s where %s", getTableName(), queryParams.alias(), queryParams.getSqlString());
+        return  String.format(" from %s %s %s", getTableName(), queryParams.alias(), queryParams.getSqlString());
     }
 
     public Long countSqlResult(String sqlExceptSelect, Object... params) {
@@ -238,7 +238,7 @@ public class Model<M extends net.zz.zjf.plugin.Model, PK extends Serializable> e
      * @return List
      */
     public List<M> findByProperty( Restriction restriction, String propertyName, Object ... value) {
-      String whereSQL = restriction.toMatchString(propertyName);
+      String whereSQL =propertyName + restriction.toMatchString(propertyName);
         Matcher matcher = Pattern.compile(":(\\w+)").matcher(whereSQL);
         String group;
         for(String rexp = null; matcher.find(); whereSQL = whereSQL.replace(String.format(":%s", group), rexp)) {
@@ -252,7 +252,7 @@ public class Model<M extends net.zz.zjf.plugin.Model, PK extends Serializable> e
             rexp = sb.toString();
 
         }
-        return find(String.format("SELECT * from %s %s", getTableName(), whereSQL), value);
+        return find(String.format("SELECT * from %s where 1=1 and %s", getTableName(), whereSQL), value);
     }
 
     /**
