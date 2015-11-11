@@ -15,7 +15,7 @@ import java.util.regex.Pattern;
 /**
  * Created by ZaoSheng on 2015/7/15.
  */
-public class Model<M extends net.zz.zjf.plugin.Model, PK extends Serializable> extends com.jfinal.plugin.activerecord.Model<M> {
+public class Model<M extends Model, PK extends Serializable> extends com.jfinal.plugin.activerecord.Model<M> {
 
     protected String getSqlExceptSelect(Params params)
     {

@@ -9,7 +9,7 @@ QueryParams的 maven 配置
 <dependency>
   <groupId>net.zz.sql</groupId>
   <artifactId>dao-params</artifactId>
-  <version>1.01</version>
+  <version>1.02</version>
 </dependency>
 ```
 然后一边开发一边完善，作为个人的开发，也希望能有志同道合的一起来完善。
